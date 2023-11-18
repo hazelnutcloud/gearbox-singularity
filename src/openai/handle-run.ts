@@ -38,9 +38,9 @@ export async function handleRun({
       const output = callback(args);
       outputPromises.push({ promise: output, toolCallId: toolCall.id });
     }
-
-    const toolOutputs: { tool_call_id: string; output: any }[] =
-      await Promise.all(
+    let toolOutputs: { tool_call_id: string; output: any }[] = [];
+    try {
+      toolOutputs = await Promise.all(
         outputPromises.map(async ({ promise, toolCallId }) => {
           return {
             tool_call_id: toolCallId,
@@ -48,6 +48,10 @@ export async function handleRun({
           };
         })
       );
+    } catch (err) {
+      console.error(err);
+      return { result: "failed" };
+    }
 
     const newRun = await openai.beta.threads.runs.submitToolOutputs(
       threadId,
