@@ -50,7 +50,16 @@ telegraf.use(async (ctx, next) => {
 telegraf.command("start", async (ctx) => {
   console.log("start command received", ctx.chat.id);
   await ctx.reply(
-    "Welcome to Gearbox Singularity! I am your personal assistant to the world of DeFi powered by the Gearbox Protocol. Please enter your credit account address to get started."
+    "Welcome to GearboxGPT! ⚙️🤖 I am your personal assistant to the world of DeFi powered by the Gearbox Protocol. Please enter your credit account address to get started."
+  );
+});
+
+telegraf.command("forget", async (ctx) => {
+  console.log("forget command received", ctx.chat.id);
+  const newThread = await ctx.openai.beta.threads.create();
+  ctx.session.threadId = newThread.id;
+  await ctx.reply(
+    "I've wiped my memory of our past conversations. Let's start over. 😇"
   );
 });
 
@@ -60,31 +69,54 @@ telegraf.on(message("text"), async (ctx) => {
   if (isAddress(ctx.message.text) && !ctx.session.creditAccountAddress) {
     ctx.session.creditAccountAddress = ctx.message.text;
     return await ctx.reply(
-      "Thank you! You can now start using Gearbox Singularity."
+      "Thank you! You can now start using Gearbox Singularity. 🥳"
     );
   }
 
-  await ctx.openai.beta.threads.messages.create(ctx.thread.id, {
-    role: "user",
-    content: ctx.message.text,
-  });
-  const run = await ctx.openai.beta.threads.runs.create(ctx.thread.id, {
-    assistant_id: ctx.assistant.id,
-  });
+  const prevRuns = await ctx.openai.beta.threads.runs.list(ctx.thread.id);
 
-  const thinkMsg = await ctx.reply("Thinking...");
+  let runId: string | undefined;
+  let thinkMsg: Awaited<ReturnType<typeof ctx.reply>> | undefined;
+
+  for (const prevRun of prevRuns.data) {
+    if (prevRun.status === "in_progress") {
+      thinkMsg = await ctx.reply(
+        "Hold on, I'm still thinking about your previous request... 🤔"
+      );
+      runId = prevRun.id;
+      break;
+    }
+  }
+
+  if (!runId) {
+    await ctx.openai.beta.threads.messages.create(ctx.thread.id, {
+      role: "user",
+      content: ctx.message.text,
+    });
+
+    const run = await ctx.openai.beta.threads.runs.create(ctx.thread.id, {
+      assistant_id: ctx.assistant.id,
+    });
+    runId = run.id;
+
+    thinkMsg = await ctx.reply("Let me think... 🤔");
+  }
 
   let result;
 
   try {
     ({ result } = await handleRun({
       openai: ctx.openai,
-      runId: run.id,
+      runId,
       threadId: ctx.thread.id,
     }));
   } catch (err) {
     console.error(err);
     result = "failed";
+  } finally {
+    if (thinkMsg) {
+      await ctx.telegram.deleteMessage(ctx.chat.id, thinkMsg.message_id);
+    }
   }
 
   if (result === "failed") {
@@ -98,8 +130,6 @@ telegraf.on(message("text"), async (ctx) => {
     order: "desc",
     limit: 1,
   });
-
-  await ctx.telegram.deleteMessage(ctx.chat.id, thinkMsg.message_id);
 
   if (messages.data[0].content[0].type === "text") {
     await ctx.reply(messages.data[0].content[0].text.value);

@@ -1,5 +1,7 @@
 import OpenAI from "openai";
-import coingeckoCoins from "../../artifacts/coingecko-coins.json";
+import coingeckoCoins from "../../artifacts/coingecko-coins.json" assert { type: "json" };
+import { getDataCompressorContract } from "../contracts/data-compressor.js";
+import { jsonBigIntSerializer } from "../utils/json-bigint.js";
 
 export const functions = [
   {
@@ -36,6 +38,22 @@ export const functions = [
         style: "currency",
         currency: "USD",
       });
+    },
+  },
+  {
+    name: "get_pools",
+    description: "Get information about all pools in gearbox protocol",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+    callback: async () => {
+      const contract = getDataCompressorContract(1);
+      if (!contract) throw new Error("Failed to get contract");
+
+      const poolsList = await contract.read.getPoolsV1List();
+
+      return JSON.stringify(poolsList, jsonBigIntSerializer);
     },
   },
 ] satisfies (OpenAI.Beta.Assistants.AssistantCreateParams.AssistantToolsFunction["function"] & {

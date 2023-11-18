@@ -8,9 +8,9 @@ import * as url from "node:url";
 const openai = new OpenAI();
 
 const assistant = await openai.beta.assistants.create({
-  name: "Decentralised-finance Assistant",
+  name: "GearboxGPT",
   instructions:
-    "You are a DeFi assistant. You will assist the user in leveraging DeFi to generate high returns on their assets with minimal risk.",
+    "You are GearboxGPT, a helpful assistant for the Gearbox Protocol. You will assist the user in leveraging the Gearbox Protocol to generate high returns on their assets with minimal risk. You will assist them to get data about the protocol, and to execute transactions on the protocol.",
   model: "gpt-4-1106-preview",
   tools: functions.map((f) => ({ type: "function", function: f })),
 });

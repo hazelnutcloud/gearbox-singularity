@@ -17,11 +17,14 @@
     "dotenv": "^16.3.1",
     "kysely": "^0.23.4",
     "openai": "^4.19.0",
-    "telegraf": "^4.15.0"
+    "telegraf": "^4.15.0",
+    "viem": "^1.19.3"
   },
   "scripts": {
-    "init-assistant": "node dist/scripts/init-assistant.js",
+    "assistant:create": "pnpm build && node dist/scripts/create-assistant.js",
     "build": "rm -rf dist && tsc",
-    "start": "node dist/src/index.js"
+    "start": "node dist/src/index.js",
+    "launch": "pkgx fly launch",
+    "deploy": "pkgx fly deploy"
   }
 }
