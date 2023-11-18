@@ -50,7 +50,12 @@ telegraf.use(async (ctx, next) => {
 telegraf.command("start", async (ctx) => {
   console.log("start command received", ctx.chat.id);
   await ctx.reply(
-    "Welcome to GearboxGPT! ⚙️🤖 I am your personal assistant to the world of DeFi powered by the Gearbox Protocol. Please enter your credit account address to get started."
+    "Welcome to GearboxGPT! I am here to help you use the Gearbox Protocol ⚙️🤖 Please enter your credit account address to get started.",
+    {
+      reply_markup: {
+        force_reply: true,
+      },
+    }
   );
 });
 
