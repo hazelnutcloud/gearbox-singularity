@@ -14,10 +14,12 @@ export async function handleRun({
   threadId,
   runId,
   openai,
+  creditAccountAddress,
 }: {
   threadId: string;
   runId: string;
   openai: OpenAI;
+  creditAccountAddress: string;
 }): Promise<HandleRunResult> {
   const status = await openai.beta.threads.runs.retrieve(threadId, runId);
 
@@ -35,7 +37,7 @@ export async function handleRun({
       )?.callback;
       if (!callback) return { result: "failed" };
       const args = JSON.parse(toolCall.function.arguments);
-      const output = callback(args);
+      const output = callback(args, creditAccountAddress);
       outputPromises.push({ promise: output, toolCallId: toolCall.id });
     }
     let toolOutputs: { tool_call_id: string; output: any }[] = [];
@@ -60,11 +62,16 @@ export async function handleRun({
         tool_outputs: toolOutputs,
       }
     );
-    return await handleRun({ threadId, runId: newRun.id, openai });
+    return await handleRun({
+      threadId,
+      runId: newRun.id,
+      openai,
+      creditAccountAddress,
+    });
   } else if (status.status === "failed") {
     return { result: "failed" };
   } else {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    return await handleRun({ threadId, runId, openai });
+    return await handleRun({ threadId, runId, openai, creditAccountAddress });
   }
 }

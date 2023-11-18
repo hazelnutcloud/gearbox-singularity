@@ -114,6 +114,7 @@ telegraf.on(message("text"), async (ctx) => {
       openai: ctx.openai,
       runId,
       threadId: ctx.thread.id,
+      creditAccountAddress: ctx.session.creditAccountAddress,
     }));
   } catch (err) {
     console.error(err);
