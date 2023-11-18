@@ -15,7 +15,7 @@ export const functions = [
       required: ["asset"],
     },
     callback: async (params: { asset: string }) => {
-      return { data: 2000 };
+      return "2,000";
     },
   },
 ] satisfies (OpenAI.Beta.Assistants.AssistantCreateParams.AssistantToolsFunction["function"] & {

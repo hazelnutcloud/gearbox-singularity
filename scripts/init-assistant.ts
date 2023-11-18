@@ -1,10 +1,9 @@
+import "dotenv/config";
 import OpenAI from "openai";
 import { functions } from "../src/openai/functions.js";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import * as url from "node:url";
-import { config } from "dotenv";
-config();
 
 const openai = new OpenAI();
 

@@ -22,7 +22,7 @@ FROM base as build
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
-    apt-get install -y build-essential pkg-config python-is-python3
+	apt-get install -y build-essential pkg-config python-is-python3
 
 # Install node modules
 COPY --link package.json pnpm-lock.yaml ./
@@ -40,10 +40,13 @@ RUN pnpm prune --prod
 
 # Final stage for app image
 FROM base
+RUN apt-get update -y && apt-get install -y ca-certificates fuse3 sqlite3
+COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
 
 # Copy built application
 COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "pnpm", "run", "start" ]
+
+ENTRYPOINT litefs mount
