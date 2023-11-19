@@ -31,12 +31,13 @@ export const functions = [
         throw new Error("Failed to fetch price");
       }
       const json = (await res.json()) as { [key: string]: { usd?: number } };
-      if (!json[coin.id]?.usd) {
+      if (!json[coin.id] || !json[coin.id].usd) {
         throw new Error("Failed to fetch price");
       }
-      return json[coin.id].usd?.toLocaleString("en-US", {
+      return json[coin.id].usd!.toLocaleString("en-US", {
         style: "currency",
         currency: "USD",
+        maximumFractionDigits: 5,
       });
     },
   },
